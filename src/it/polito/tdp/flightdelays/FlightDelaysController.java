@@ -7,8 +7,12 @@
 package it.polito.tdp.flightdelays;
 
 import java.net.URL;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.extflightdelays.model.Airport;
 import it.polito.tdp.extflightdelays.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -41,21 +45,49 @@ public class FlightDelaysController {
     private Button btnAnalizza; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbBoxAeroportoPartenza"
-    private ComboBox<String> cmbBoxAeroportoPartenza; // Value injected by FXMLLoader
+    private ComboBox<Airport> cmbBoxAeroportoPartenza; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbBoxAeroportoArrivo"
-    private ComboBox<String> cmbBoxAeroportoArrivo; // Value injected by FXMLLoader
+    private ComboBox<Airport> cmbBoxAeroportoArrivo; // Value injected by FXMLLoader
 
     @FXML // fx:id="btnAeroportiConnessi"
     private Button btnAeroportiConnessi; // Value injected by FXMLLoader
 
     @FXML
     void doAnalizzaAeroporti(ActionEvent event) {
-
+    	txtResult.clear();
+    	Integer distanzaInserita;
+    	try {
+    		distanzaInserita = Integer.parseInt(distanzaMinima.getText());
+    	} catch (NumberFormatException e) {
+    		txtResult.appendText("Inserire una distanza numerica! ");
+    		return;
+    	}
+    	
+    	model.creaGrafo(distanzaInserita);
+    	txtResult.setText("Grafo creato!");
+    	
     }
 
     @FXML
     void doTestConnessione(ActionEvent event) {
+    	txtResult.clear();
+    	
+    	Airport partenza = cmbBoxAeroportoPartenza.getValue();
+    	Airport arrivo = cmbBoxAeroportoArrivo.getValue();
+    	
+    	if(partenza == null|| arrivo == null) {
+    		txtResult.appendText("Selezionare aeroporto di arrivo e di partenza \n");
+    		return;
+    	}
+    	
+    	
+    	List<Airport> percorso = model.trovaPercorso(partenza.getId(), arrivo.getId());
+    	if(percorso == null) {
+    		txtResult.appendText("Non è possibile raggiungere l’aeroporto di arrivo a partire da quello di partenza.");
+    	}
+    	else
+			txtResult.setText("I due aeroporti sono connessi dal seguente percorso: " + percorso);
 
     }
 
@@ -72,6 +104,10 @@ public class FlightDelaysController {
     
     public void setModel(Model model) {
 		this.model = model;
+		
+		
+		cmbBoxAeroportoPartenza.getItems().addAll(model.getAeroporti());
+		cmbBoxAeroportoArrivo.getItems().addAll(model.getAeroporti());
 	}
 }
 
